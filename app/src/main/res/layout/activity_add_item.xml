@@ -93,8 +93,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- TODO: android:onClick="DoSomeThingClick" -->
-    <!-- Add Item Button to appear below the password EditText -->
+    <!-- Add Item Button will be enabled when all fields are filled
+     and forward the data to the DatabaseActivity.Java to be added to the database-->
     <Button
         android:id="@+id/addItemButton"
         android:layout_width="0dp"

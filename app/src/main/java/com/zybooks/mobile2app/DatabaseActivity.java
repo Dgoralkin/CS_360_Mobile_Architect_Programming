@@ -33,12 +33,11 @@ public class DatabaseActivity extends AppCompatActivity {
     // Variables
     private static final String TAG = "PrintLog";
     public MaterialToolbar top_menu_toolbar;
-    public ActionBar actionBarBackButton;
     public FloatingActionButton fab_button;
     public RecyclerView recyclerView;
     public List<TableRowData> tableData;
     ConstraintLayout mActivityDatabase;
-    Intent intentFromAddItemActivity;
+    Intent intentToLoginActivity, intentFromAddItemActivity, intentToNotificationActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +60,10 @@ public class DatabaseActivity extends AppCompatActivity {
         // Set up the top menu ActionBar with the MaterialToolbar
         setSupportActionBar(top_menu_toolbar);
         // Enable the Back button in the ActionBar
-        actionBarBackButton = getSupportActionBar();
+        ActionBar actionBarBackButton = getSupportActionBar();
         if (actionBarBackButton != null) {
             actionBarBackButton.setDisplayShowHomeEnabled(true);
+            actionBarBackButton.setDisplayHomeAsUpEnabled(true);
         }
         Log.d(TAG, "In Database Activity: Top Menu bar created successfully");
 
@@ -85,15 +85,16 @@ public class DatabaseActivity extends AppCompatActivity {
 
             // TODO: Go to Login Activity from DatabaseActivity
             if (itemId == R.id.nav_login) {
-                Intent intent = new Intent(DatabaseActivity.this, LoginActivity.class);
+                intentToLoginActivity = new Intent(DatabaseActivity.this, LoginActivity.class);
 
                 // Put an extra data to the intent call to log the user out
-                intent.putExtra("loggedIn", false);
+                intentToLoginActivity.putExtra("loggedIn", false);
+
+                Log.d(TAG, "In Database Activity: Logged out button clicked");
 
                 // Start new activity, pass the extra variable, and end current activity
-                startActivity(intent);
+                startActivity(intentToLoginActivity);
                 finish();
-                Log.d(TAG, "In Database Activity: Logged out button clicked");
                 return true;
 
             // TODO: Go to Database Activity from DatabaseActivity
@@ -105,14 +106,13 @@ public class DatabaseActivity extends AppCompatActivity {
             // FIXME: Activate for notification fragment as added
             // Go to Notification Activity from DatabaseActivity
             }  else if (itemId == R.id.nav_notification) {
-                // Intent intent = new Intent(DatabaseActivity.this, NotificationActivity.class);
+                intentToNotificationActivity = new Intent(DatabaseActivity.this, NotificationActivity.class);
 
-                /* Start new activity and end current activity
-                startActivity(intent);
-                finish();*/
                 Log.d(TAG, "In Database Activity: Notification button clicked");
-                Snackbar.make(mActivityDatabase, "* Notification Functionality - Will be added later *",
-                        Snackbar.LENGTH_LONG).show();
+
+                // Start new activity and end current activity
+                startActivity(intentToNotificationActivity);
+                finish();
                 return true;
             }
             return false;
@@ -159,9 +159,10 @@ public class DatabaseActivity extends AppCompatActivity {
          *  TODO: Check if additional data was retrieved from AddItemActivity through an intent pass.
          *   If so, add it to the tableData list.
          * ****************************************************************************************/
-        // Catch the Intent and extract the extras (SKU, Name, Quantity)
+        // Catch the Intent and extract the extras (SKU, Name, Quantity) if intent came from
+        // AddItemActivity and carries the extras
         intentFromAddItemActivity = getIntent();
-        if (intentFromAddItemActivity != null) {
+        if (intentFromAddItemActivity != null && intentFromAddItemActivity.hasExtra("itemSku")) {
             String itemSku = intentFromAddItemActivity.getStringExtra("itemSku");
             String itemName = intentFromAddItemActivity.getStringExtra("itemName");
             int itemQuantity = intentFromAddItemActivity.getIntExtra("itemQuantity", 0);
@@ -216,8 +217,8 @@ public class DatabaseActivity extends AppCompatActivity {
 
         // TODO: Handle the Back button from the top menu action bar
         if (id == android.R.id.home) {
-            finish();
             Log.d(TAG, "In Database Activity: Back button clicked");
+            finish();
             return true;
 
         // TODO: Handle the Settings button from the top menu action bar

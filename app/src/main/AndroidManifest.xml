@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
+    <!-- Set required permissions to access files and memory -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Set required permissions to send SMS messages -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Update Google Play with the required features -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -45,7 +52,7 @@
                 android:value=".DatabaseActivity" />
         </activity>
         <activity
-            android:name=".NotificationsActivity"
+            android:name=".NotificationActivity"
             android:exported="false"
             android:label="@string/notification_bottom_bar_button"
             android:parentActivityName=".DatabaseActivity"

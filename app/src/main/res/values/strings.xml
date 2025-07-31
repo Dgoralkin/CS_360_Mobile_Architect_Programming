@@ -15,7 +15,7 @@
     <!-- Strings used for bottom navigation bar -->
     <string name="logout_bottom_bar_button">Logout</string>
     <string name="database_bottom_bar_button">Database</string>
-    <string name="notification_bottom_bar_button">Notification</string>
+    <string name="notification_bottom_bar_button">Notifications</string>
     <string name="add_item">Add item</string>
     <string name="fab_add_item_button">Add Item</string>
 
@@ -38,5 +38,12 @@
     <string name="enter_item_qty">Enter Item Quantity:</string>
     <string name="enter_quantity">Enter Quantity:</string>
     <string name="upload_image">Take Image</string>
+
+    <!-- Strings used for the SMS notification layout in the notification activity -->
+    <string name="sms_permission_not_granted">SMS permission status:</string>
+    <string name="enable_sms_notifications">Check SMS Notification Status</string>
+    <string name="sms_permission_already_granted">SMS permission already granted.</string>
+    <string name="sms_permission_granted">SMS permission granted</string>
+    <string name="sms_permission_denied">SMS permission denied</string>
 
 </resources>

@@ -29,12 +29,11 @@ public class AddItemActivity extends AppCompatActivity {
     // Variables for the class
     private static final String TAG = "PrintLog";
     public MaterialToolbar top_menu_toolbar;
-    public ActionBar actionBarBackButton;
     public FloatingActionButton fab_button;
     public ConstraintLayout mAddItemToDatabase;
     public EditText skuEditText, nameEditText, quantityEditText;
     public Button addItemButton;
-    Intent intent;
+    Intent intentToLoginActivity, intentToNotificationActivity, intentToDatabaseActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,10 +55,12 @@ public class AddItemActivity extends AppCompatActivity {
         top_menu_toolbar = findViewById(R.id.topAppBar);
         // Set up the top menu ActionBar with the MaterialToolbar
         setSupportActionBar(top_menu_toolbar);
+
         // Enable the Back button in the ActionBar
-        actionBarBackButton = getSupportActionBar();
+        ActionBar actionBarBackButton = getSupportActionBar();
         if (actionBarBackButton != null) {
             actionBarBackButton.setDisplayShowHomeEnabled(true);
+            actionBarBackButton.setDisplayHomeAsUpEnabled(true);
         }
         Log.d(TAG, "In Add Item Activity: Top Menu bar created and initialized successfully");
 
@@ -81,40 +82,39 @@ public class AddItemActivity extends AppCompatActivity {
 
             // TODO: Go to Login Activity from AddItemActivity
             if (itemId == R.id.nav_login) {
-                Intent intent = new Intent(AddItemActivity.this, LoginActivity.class);
+                intentToLoginActivity = new Intent(AddItemActivity.this, LoginActivity.class);
 
                 // Put an extra data to the intent call to log the user out
-                intent.putExtra("loggedIn", false);
+                intentToLoginActivity.putExtra("loggedIn", false);
 
                 // Start new activity, pass the extra variable, and end current activity
-                startActivity(intent);
+                startActivity(intentToLoginActivity);
                 finish();
                 Log.d(TAG, "In Add Item Activity: logged out button clicked");
                 return true;
 
             // TODO: Go to Database Activity from AddItemActivity
             } else if (itemId == R.id.nav_database) {
-                Intent intent = new Intent(AddItemActivity.this, DatabaseActivity.class);
+                intentToDatabaseActivity = new Intent(AddItemActivity.this, DatabaseActivity.class);
                 // Start new activity, pass the extra variable, and end current activity
                 Log.d(TAG, "In Add Item Activity: Database button clicked");
 
                 // Start new activity and end current activity
-                startActivity(intent);
+                startActivity(intentToDatabaseActivity);
                 finish();
                 return true;
 
             // FIXME: Activate for notification fragment as added
             // Go to Notification Activity from AddItemActivity
             } else if (itemId == R.id.nav_notification) {
-                // Intent intent = new Intent(AddItemActivity.this, NotificationActivity.class);
+                intentToNotificationActivity = new Intent(AddItemActivity.this, NotificationActivity.class);
 
-                /* Start new activity and end current activity
-                startActivity(intent);
-                finish();*/
-                Snackbar.make(mAddItemToDatabase, "* Notification Functionality - Will be added later *",
-                        Snackbar.LENGTH_LONG).show();
                 Log.d(TAG, "In Add Item Activity: Notification button clicked");
-                // return true;
+
+                // Start new activity and end current activity
+                startActivity(intentToNotificationActivity);
+                finish();
+                return true;
             }
             return false;
         });
@@ -177,8 +177,6 @@ public class AddItemActivity extends AppCompatActivity {
         /* TODO: Add click listener to retrieve values from the EditTexts in the activity_add_item.xml
              and add them to the database
          * ****************************************************************************************/
-        Log.d(TAG, "In Database Activity: addItemButton button clicked");
-
         addItemButton = findViewById(R.id.addItemButton);
         // Set the click listener for the Add Item button
         addItemButton.setOnClickListener(v -> {
@@ -200,16 +198,16 @@ public class AddItemActivity extends AppCompatActivity {
 
             // FIXME: Forward item to DatabaseActivity through an intent with extra data
             //  to add the item to database after it is implemented
-            intent = new Intent(AddItemActivity.this, DatabaseActivity.class);
-            intent.putExtra("itemSku", sku);
-            intent.putExtra("itemName", name);
-            intent.putExtra("itemQuantity", quantity);
+            intentToDatabaseActivity = new Intent(AddItemActivity.this, DatabaseActivity.class);
+            intentToDatabaseActivity.putExtra("itemSku", sku);
+            intentToDatabaseActivity.putExtra("itemName", name);
+            intentToDatabaseActivity.putExtra("itemQuantity", quantity);
 
             Log.d(TAG, "Item forwarded from Add Item Activity form to Database Activity: " +
                     " - SKU: " + sku + ", Name: " + name + ", Quantity: " + quantity);
 
             // Start new activity, pass the extra variable, and end current activity
-            startActivity(intent);
+            startActivity(intentToDatabaseActivity);
             finish();
         });
     }
@@ -226,8 +224,8 @@ public class AddItemActivity extends AppCompatActivity {
 
         // TODO: Handle the Back button from the top menu action bar
         if (id == android.R.id.home) {
+            Log.d(TAG, "In Add Item Activity: Back button clicked");
             finish();
-            Log.d(TAG, "In Add Item Activity Activity: Back button clicked");
             return true;
 
             // TODO: Handle the Settings button from the top menu action bar
