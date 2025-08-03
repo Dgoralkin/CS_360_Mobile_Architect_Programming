@@ -314,7 +314,7 @@ public class AddItemActivity extends AppCompatActivity {
             try {
                 // Create the temporary image file and get its path
                 photoFile = createImageFile();
-                Log.d(TAG, "Camera exists! - Photo file path: " + photoFile.getAbsolutePath());
+                Log.d(TAG, "Camera exists!");
             } catch (IOException ex) {
                 Toast.makeText(this, "Error creating image file", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Error creating image file: " + ex.getMessage());
@@ -353,7 +353,7 @@ public class AddItemActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Toast.makeText(this, "Photo saved: " + currentPhotoPath, Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Photo saved to " + currentPhotoPath);
+            Log.d(TAG, "Photo saved to: " + currentPhotoPath);
             // Now currentPhotoPath holds the image path to send with intent
         }
     }

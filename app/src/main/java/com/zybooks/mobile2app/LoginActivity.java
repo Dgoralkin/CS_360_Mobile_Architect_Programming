@@ -1,6 +1,8 @@
 package com.zybooks.mobile2app;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,15 +26,22 @@ public class LoginActivity extends AppCompatActivity {
 
     // Variables for the class
     private static final String TAG = "PrintLog";
-    private static String mTempUsername = "";
-    private static String mTempPassword = "";
+    private static String mName = "Daniel";
+    private static String mPassword = "Gorelkin";
     private static boolean loggedIn = false;
     // Variables for the widgets
-    private EditText mUserName, mPassword;
+    private EditText mUserName, mUserPassword;
     private Button mLoginButton;
     private ConstraintLayout mActivityLogin;
     private TextView loginTempTextOutput;
 
+    // Database variables to be used in the LoginActivity
+    private DatabaseHelper dbHelper;
+    SQLiteDatabase db;
+    boolean dbUser;
+    private static final String DATABASE_NAME = "mobile2app.db";
+
+    @SuppressLint("SdCardPath")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +54,40 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        Log.d(TAG, "onCreate: Activity Login started...");      // Log a message to the console
+        Log.d(TAG, "onCreate: Activity Login started...");
+
+
+        // TODO: Create the database if it doesn't exist
+        // Credentials stored at /data/data/com.zybooks.mobile2app/databases/mobile2app.db
+        // Create the database helper object
+        dbHelper = new DatabaseHelper(this);
+
+        // Check if the database exists
+        try{
+            boolean exists = dbHelper.doesDatabaseExist(this, DATABASE_NAME);
+            // Log.d(TAG, "DATABASE Check - Database exists: " + exists);
+
+            // TODO: If the database doesn't exist, create it and open the readable/writable database
+            db = dbHelper.getReadableDatabase();
+        } catch (Exception e) {
+            Log.d(TAG, "DATABASE Check - Database does not exist: failed!");
+            e.printStackTrace();
+        }
+        Log.d(TAG, "DATABASE Check - Database exist and ready for reading: " + db.isOpen());
+        // Close the database
+        db.close();
+
+        /* *****************************************************************************************
+        // TODO: Register the "admin" user into the database
+        / *****************************************************************************************/
+        // Check if the user admin exists in the database
+        dbUser = dbHelper.checkUserCredentials(mName, mPassword);
+        // Add the admin user if it doesn't exist
+        if (!dbUser) {
+            dbHelper.registerUser(mName, mPassword);
+            Log.d(TAG, "Admin user registered successfully");
+        }
+
 
         // Retrieve the "loggedIn" boolean from the bottom_nav_menu.xml Intent and log user out
         loggedIn = getIntent().getBooleanExtra("loggedIn", false);
@@ -53,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Identify the EditTexts in the layout file
         mUserName = findViewById(R.id.username);
-        mPassword = findViewById(R.id.password);
+        mUserPassword = findViewById(R.id.password);
         // Identify the Button in the layout file
         mLoginButton = findViewById(R.id.loginButton);
         // Identify the ConstraintLayout in the layout file
@@ -70,7 +112,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Check if both username and password fields are not empty
                 String usernameInput = mUserName.getText().toString().trim();
-                String passwordInput = mPassword.getText().toString().trim();
+                String passwordInput = mUserPassword.getText().toString().trim();
 
                 // Enable the login button if both fields are not empty
                 mLoginButton.setEnabled(!usernameInput.isEmpty() && !passwordInput.isEmpty());
@@ -84,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
         // and trigger the onTextChanged method when the user types in the fields
         // and enable the login button if both fields are not empty
         mUserName.addTextChangedListener(loginTextWatcher);
-        mPassword.addTextChangedListener(loginTextWatcher);
+        mUserPassword.addTextChangedListener(loginTextWatcher);
     }
 
 
@@ -100,12 +142,18 @@ public class LoginActivity extends AppCompatActivity {
 
             // get user input
             String mUserNameInput = mUserName.getText().toString();
-            String mPasswordInput = mPassword.getText().toString();
+            String mPasswordInput = mUserPassword.getText().toString();
             Log.d(TAG, "User Login Input: " + mUserNameInput + " / " + mPasswordInput);
 
             // TODO: modify to check if the EditTexts mUserName and mPassword exist in the database
-            if (mUserNameInput.equals(mTempUsername) && mPasswordInput.equals(mTempPassword)) {
 
+
+            // Check if the user credentials are valid in the database
+            dbUser = dbHelper.checkUserCredentials(mUserNameInput, mPasswordInput);
+            Log.d(TAG, "User exist in the DB: " + dbUser);
+
+            // If the user credentials are valid, log them in and start the Database activity
+            if (dbUser) {
                 // Show the loginTempTextOutput TextView and set its text
                 loginTempTextOutput.setVisibility(View.VISIBLE);
                 String mOutputMessage = getString(R.string.welcome) + mUserNameInput + "!";
@@ -117,11 +165,14 @@ public class LoginActivity extends AppCompatActivity {
                 loggedIn = true;
                 Log.d(TAG, "User Login Status: " + loggedIn);
 
-                // Start the Database activity view
-                startActivity(new Intent(this, DatabaseActivity.class));
+                // Create an Intent to start the DatabaseActivity after the two second delay
+                view.postDelayed(() -> {
+                    // Start the Database activity view
+                    startActivity(new Intent(this, DatabaseActivity.class));
+                }, 1500);
 
             } else {
-                // TODO: implement login logic if username or password is incorrect (database connection...)
+                // TODO: implement login logic if username or password is incorrect
                 Snackbar.make(mActivityLogin, getString(R.string.invalid_username_password),
                         Snackbar.LENGTH_SHORT).show();
                 loginTempTextOutput.setVisibility(View.VISIBLE);
@@ -142,14 +193,14 @@ public class LoginActivity extends AppCompatActivity {
 
             // get user input
             String mUserNameInput = mUserName.getText().toString();
-            String mPasswordInput = mPassword.getText().toString();
+            String mPasswordInput = mUserPassword.getText().toString();
             Log.d(TAG, "User Register Input: " + mUserNameInput + "/" + mPasswordInput);
 
             if (!mUserNameInput.trim().isEmpty() && !mPasswordInput.trim().isEmpty()) {
                 // FIXME: implement user registration logic in the user database.
                 // Set the temporary username and password variables
-                mTempUsername = mUserNameInput;
-                mTempPassword = mPasswordInput;
+                mName = mUserNameInput;
+                mPassword = mPasswordInput;
                 // Mark the user as logged in
                 loginTempTextOutput.setVisibility(View.VISIBLE);
                 loginTempTextOutput.setText(R.string.register_success_message);
