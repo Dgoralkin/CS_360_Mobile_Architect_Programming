@@ -1,11 +1,15 @@
 package com.zybooks.mobile2app;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.io.File;
 import java.util.List;
 
 /* *********************************************************************************************
@@ -34,6 +38,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
     /* TODO: This class defines the ViewHolder for each row in the RecyclerView
      **********************************************************************************************/
     public static class TableViewHolder extends RecyclerView.ViewHolder {
+        ImageView col1Image;
         TextView col2, col3, col4;
         ImageView deleteItem;
 
@@ -43,6 +48,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
          **********************************************************************************************/
         public TableViewHolder(View itemView) {
             super(itemView);
+            col1Image = itemView.findViewById(R.id.col1_image);
             col2 = itemView.findViewById(R.id.col2);
             col3 = itemView.findViewById(R.id.col3);
             col4 = itemView.findViewById(R.id.col4);
@@ -77,6 +83,21 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
     @Override
     public void onBindViewHolder(TableViewHolder holder, int position) {
         TableRowData row = dataList.get(position);
+
+        // Load image from file path if available
+        if (row.getColumn1() != null && !row.getColumn1().isEmpty()) {
+            File imgFile = new File(row.getColumn1());
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                holder.col1Image.setImageBitmap(myBitmap);
+            } else {
+                holder.col1Image.setImageResource(R.drawable.product_image); // fallback
+            }
+        } else {
+            holder.col1Image.setImageResource(R.drawable.product_image); // fallback
+        }
+
+        // Set text for other columns
         holder.col2.setText(row.getColumn2());
         holder.col3.setText(row.getColumn3());
         holder.col4.setText(String.valueOf(row.getColumn4()));

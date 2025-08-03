@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Set required permissions to access files and memory -->
+
+    <!-- Set required permissions to access files and memory on external storage -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <!-- Set required permissions to send SMS messages -->
     <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Set required permissions to access camera -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- Update Google Play with the required features -->
     <uses-feature
         android:name="android.hardware.telephony"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="false" />
 
     <application
@@ -61,6 +69,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".DatabaseActivity" />
         </activity>
+
+        <!-- Grant Uri Permissions for reading and storing files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.zybooks.mobile2app.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

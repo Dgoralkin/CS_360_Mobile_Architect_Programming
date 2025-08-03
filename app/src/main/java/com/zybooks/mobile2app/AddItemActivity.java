@@ -1,6 +1,9 @@
 package com.zybooks.mobile2app;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,9 +14,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,17 +31,25 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.File;
+import java.io.IOException;
+
 
 public class AddItemActivity extends AppCompatActivity {
 
     // Variables for the class
     private static final String TAG = "PrintLog";
+    private String currentPhotoPath = null;
     public MaterialToolbar top_menu_toolbar;
     public FloatingActionButton fab_button;
     public ConstraintLayout mAddItemToDatabase;
     public EditText skuEditText, nameEditText, quantityEditText;
-    public Button addItemButton;
-    Intent intentToLoginActivity, intentToNotificationActivity, intentToDatabaseActivity;
+    public Button addItemButton, uploadImageButton;
+    Intent intentToLoginActivity, intentToNotificationActivity,
+            intentToDatabaseActivity, takePictureIntent;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int CAMERA_PERMISSION_CODE = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,17 +215,34 @@ public class AddItemActivity extends AppCompatActivity {
             // FIXME: Forward item to DatabaseActivity through an intent with extra data
             //  to add the item to database after it is implemented
             intentToDatabaseActivity = new Intent(AddItemActivity.this, DatabaseActivity.class);
+
+            // FIXME: Add item info to database
             intentToDatabaseActivity.putExtra("itemSku", sku);
             intentToDatabaseActivity.putExtra("itemName", name);
             intentToDatabaseActivity.putExtra("itemQuantity", quantity);
 
+            // FIXME: Add item image to database
+            intentToDatabaseActivity.putExtra("itemImage", currentPhotoPath);
+
             Log.d(TAG, "Item forwarded from Add Item Activity form to Database Activity: " +
-                    " - SKU: " + sku + ", Name: " + name + ", Quantity: " + quantity);
+                    "- SKU: " + sku + ", Name: " + name + ", Quantity: " + quantity +
+                    ", Image: " + currentPhotoPath);
 
             // Start new activity, pass the extra variable, and end current activity
             startActivity(intentToDatabaseActivity);
             finish();
         });
+
+
+        /* ****************************************************************************************/
+        /* TODO: Add click listener to retrieve values from the EditTexts in the activity_add_item.xml
+            to add the item image from the camera to database
+         * ****************************************************************************************/
+        uploadImageButton = findViewById(R.id.uploadImageButton);
+        // Set the click listener for the Upload Image button and check camera permission
+        // if uploadImageButton clicked
+        uploadImageButton.setOnClickListener(v -> checkCameraPermission());
+        Log.d(TAG, "In Add Item Activity: Upload Image button created");
     }
     // -----------------------      onCreate ends here      -----------------------
 
@@ -231,5 +264,122 @@ public class AddItemActivity extends AppCompatActivity {
             // TODO: Handle the Settings button from the top menu action bar
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    /* *********************************************************************************************
+     *  TODO: The createImageFile() method creates a temporary image file for the camera to store
+     *   images taken from the camera in the device. It returns the File object that represents
+     *   the temporary image file path to be stored in the database for each item object.
+     * ********************************************************************************************/
+    private File createImageFile() throws IOException {
+        // Create an image file name with timestamp
+        String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").
+                format(new java.util.Date());
+
+        // Get the image file name template
+        String imageFileName = "JPEG_" + timeStamp + "_";
+
+        // Get app's internal storage directory
+        File storageDir = getFilesDir();
+
+        // Create a temporary image file
+        File image = File.createTempFile(imageFileName,".jpg", storageDir);
+
+        // Save a file path for use with intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
+    /* *********************************************************************************************
+     *  TODO: The dispatchTakePictureIntent() method creates an intent to take a picture from the
+     *      camera and stores it in the currentPhotoPath variable.
+     * ********************************************************************************************/
+    private void dispatchTakePictureIntent() {
+        Log.d(TAG, "In Add Item Activity: Upload Image button clicked");
+
+        // Create the intent to take a picture from the camera
+        takePictureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+
+        // Ensure that there's a camera activity to handle the intent
+        /* FIXME: Swap the following line to:
+        *   if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+        *       to initiate true camera call on physical device. */
+
+        // FIXME: Swap the True condition to initiate true camera call on physical device-:
+        if (true) {
+            File photoFile = null;
+
+            try {
+                // Create the temporary image file and get its path
+                photoFile = createImageFile();
+                Log.d(TAG, "Camera exists! - Photo file path: " + photoFile.getAbsolutePath());
+            } catch (IOException ex) {
+                Toast.makeText(this, "Error creating image file", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Error creating image file: " + ex.getMessage());
+                return;
+            }
+
+            // Get the URI for the temporary image file
+            if (photoFile != null) {
+                androidx.core.content.FileProvider.getUriForFile(this,
+                        getApplicationContext().getPackageName() + ".fileprovider",
+                        photoFile);
+
+                android.net.Uri photoURI = androidx.core.content.FileProvider.getUriForFile(
+                        this,
+                        getApplicationContext().getPackageName() + ".fileprovider",
+                        photoFile);
+
+                // Set the URI for the intent
+                Log.d(TAG, "Photo URI: " + photoURI);
+
+                // Save the full-size photo to this photoURI location
+                takePictureIntent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoURI);
+
+                // Start the camera activity and take the photo
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+
+    /* *********************************************************************************************
+     *  TODO: Check if the camera permission is granted. If not, request it.
+     * ********************************************************************************************/
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Toast.makeText(this, "Photo saved: " + currentPhotoPath, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Photo saved to " + currentPhotoPath);
+            // Now currentPhotoPath holds the image path to send with intent
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                dispatchTakePictureIntent();
+            } else {
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    private void checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission not granted, request it
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_CODE);
+        } else {
+            // Permission already granted
+            dispatchTakePictureIntent();
+        }
     }
 }

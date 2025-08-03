@@ -148,7 +148,7 @@ public class DatabaseActivity extends AppCompatActivity {
         Random random = new Random();
 
         // Add data to the tableData list (To be removed as database connected)
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             int qty = random.nextInt(100);
             String sku = "A1B2" + qty;
             String itemName = "Item " + (i + 1);
@@ -163,17 +163,19 @@ public class DatabaseActivity extends AppCompatActivity {
         // AddItemActivity and carries the extras
         intentFromAddItemActivity = getIntent();
         if (intentFromAddItemActivity != null && intentFromAddItemActivity.hasExtra("itemSku")) {
+            String itemImage = intentFromAddItemActivity.getStringExtra("itemImage");
             String itemSku = intentFromAddItemActivity.getStringExtra("itemSku");
             String itemName = intentFromAddItemActivity.getStringExtra("itemName");
             int itemQuantity = intentFromAddItemActivity.getIntExtra("itemQuantity", 0);
 
             // Log the data and check it was retrieved correctly
-            Log.d(TAG, "Intent Received from AddItemActivity - SKU: " + itemSku + ", Name: "
+            Log.d(TAG, "Intent Received from AddItemActivity - Image: "
+                    + itemImage + ", SKU: " + itemSku + ", Name: "
                     + itemName + ", Quantity: " + itemQuantity);
 
             // Add the retrieved data to the table data list in the database before it sent to RecyclerView
             if (itemSku != null && itemName != null) {
-                tableData.add(new TableRowData(itemSku, itemName, itemQuantity));
+                tableData.add(new TableRowData(itemImage, itemSku, itemName, itemQuantity));
             }
         }
 

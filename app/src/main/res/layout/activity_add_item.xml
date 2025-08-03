@@ -26,7 +26,7 @@
     <EditText
         android:id="@+id/addUsername"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginTop="96dp"
         android:autofillHints="Enter item SKU"
         android:hint="@string/enter_sku"
@@ -39,7 +39,7 @@
     <EditText
         android:id="@+id/addItemName"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:hint="@string/enter_item_name"
         android:autofillHints="Enter Item Name"
@@ -55,7 +55,7 @@
     <EditText
         android:id="@+id/addItemQuantity"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:autofillHints="number"
         android:hint="@string/enter_quantity"
