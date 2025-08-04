@@ -1,8 +1,7 @@
 package com.zybooks.mobile2app;
 
-import static java.lang.Math.random;
-
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
@@ -24,10 +24,6 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class DatabaseActivity extends AppCompatActivity {
 
@@ -73,6 +69,32 @@ public class DatabaseActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d(TAG, "DATABASE Check - Database does not exist: failed!");
             e.printStackTrace();
+        }
+
+
+        /*  TODO: Create and show an AlertDialog only once when the activity starts
+        *    to guide user how to use the app.
+        * *****************************************************************************************/
+        // Flag to ensure the dialog only appears once, the first time the activity starts
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+
+        // FIXME: To clear all preferences
+        // prefs.edit().clear().apply();
+
+        // Check if the tip has been shown
+        boolean tipShown = prefs.getBoolean("tip_shown", false);
+
+        if (!tipShown) {
+            // Set the dialog message and button text
+            new AlertDialog.Builder(this)
+                    .setTitle("Usage Tip")
+                    .setMessage("Tap and hold the item to adjust quantity")
+                    .setPositiveButton("Got it", (dialog, which) -> {
+                        // Save that the tip was shown
+                        prefs.edit().putBoolean("tip_shown", true).apply();
+                    })
+                    // Show the dialog
+                    .show();
         }
 
 
@@ -209,7 +231,7 @@ public class DatabaseActivity extends AppCompatActivity {
          *   This method will call the getAllItems() method from the DatabaseHelper class
          *   and populate the tableData list with the retrieved data through the TableAdapter() constructor
          * ****************************************************************************************/
-        TableAdapter adapter = new TableAdapter(dbHelper.getAllItems(), (position, rowData) -> {
+        TableAdapter adapter = new TableAdapter(dbHelper.getAllItems(), dbHelper, (position, rowData) -> {
             boolean deleted = dbHelper.deleteItem(rowData.getColumn2());
 
             if (deleted) {

@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +36,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_SKU = "sku";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_QUANTITY = "quantity";
+    public static final String COLUMN_QUANTITY_MIN = "quantity_min";
+    public static final int ITEM_QUANTITY_MIN = 10;
 
 
     // Constructor
@@ -62,7 +63,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_IMAGE_PATH + " TEXT, " +
                     COLUMN_SKU + " TEXT NOT NULL UNIQUE, " +
                     COLUMN_NAME + " TEXT NOT NULL, " +
-                    COLUMN_QUANTITY + " INTEGER NOT NULL" + ")";
+                    COLUMN_QUANTITY + " INTEGER NOT NULL, " +
+                    COLUMN_QUANTITY_MIN + " INTEGER NOT NULL" + ")";
 
             // Execute SQL statements
             db.execSQL(createUsersTable);
@@ -84,18 +86,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // ---------- GENERAL DATABASE METHODS ----------
-    public boolean doesDatabaseExist(Context context, String dbName) {
-        File dbFile = context.getDatabasePath(dbName);
-        return dbFile.exists();
-    }
-
-
     // ---------- USER TABLE METHODS ----------
 
     // Check user credentials in the database
     // Returns true if credentials are valid and user exists, false otherwise
-    public boolean checkUserCredentials(String username, String password) {
+    public boolean checkUserCredentials(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                COLUMN_USERNAME + "=?",
+                new String[]{username},
+                null, null, null);
+
+        boolean valid = cursor.moveToFirst();
+        cursor.close();
+        return valid;
+    }
+
+
+    // Check user credentials in the database
+    // Returns true if credentials are valid and user exists, false otherwise
+    public boolean validateUserCredentials(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS,
                 new String[]{COLUMN_USER_ID},
@@ -146,6 +157,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return items;
     }
 
+    // This method will return an integer value of the minimum quantity of the item in the database
+    public int getMinQuantity(String sku) {
+        // Default value if not found
+        int quantityMin = -1;
+
+        // Get the database
+        SQLiteDatabase db = this.getReadableDatabase();
+        // Query the database for the minimum quantity
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_QUANTITY_MIN + " FROM items WHERE sku = ?", new String[]{sku});
+
+
+        // Get the value of the minimum quantity
+        if (cursor != null && cursor.moveToFirst()) {
+            quantityMin = cursor.getInt(0);
+            cursor.close();
+        } else if (cursor != null) {
+            cursor.close();
+        }
+        return quantityMin;
+    }
+
+
     // This method will add a new item to the database
     public boolean addItem(String imagePath, String sku, String name, int quantity) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -154,6 +187,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_SKU, sku);
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_QUANTITY, quantity);
+        values.put(COLUMN_QUANTITY_MIN, ITEM_QUANTITY_MIN);
 
         try {
             long result = db.insertOrThrow(TABLE_ITEMS, null, values);
@@ -187,6 +221,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         boolean exists = cursor.moveToFirst();
         cursor.close();
         return exists;
+    }
+
+
+    // This method will update the quantity of an item in the database based on its ID
+    // Returns true if the update was successful, false otherwise
+    // Reads commands from the TableAdapter class in the showQuantityDialog
+    public boolean updateItemQuantity(String sku, int newQuantity) {
+        // Get the database
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        // Set the new quantity
+        values.put(COLUMN_QUANTITY, newQuantity);
+
+        // Execute the query and update the item in the database
+        int rowsAffected = db.update(TABLE_ITEMS, values, "sku = ?", new String[]{sku});
+        // Return true if updated
+        return rowsAffected > 0;
     }
     // ---------- END OF THE ITEMS TABLE METHODS ----------
 }

@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,8 +25,8 @@ public class LoginActivity extends AppCompatActivity {
 
     // Variables for the class
     private static final String TAG = "PrintLog";
-    private static String mName = "Daniel";
-    private static String mPassword = "Gorelkin";
+    private static final String mName = "Daniel";
+    private static final String mPassword = "Gorelkin";
     private static boolean loggedIn = false;
     // Variables for the widgets
     private EditText mUserName, mUserPassword;
@@ -64,8 +63,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Check if the database exists
         try{
-            boolean exists = dbHelper.doesDatabaseExist(this, DATABASE_NAME);
-
             // TODO: If the database doesn't exist, create it and open the readable/writable database
             db = dbHelper.getReadableDatabase();
         } catch (Exception e) {
@@ -80,11 +77,13 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: Register the "admin" user into the database
         / *****************************************************************************************/
         // Check if the user admin exists in the database
-        dbUser = dbHelper.checkUserCredentials(mName, mPassword);
+        dbUser = dbHelper.checkUserCredentials(mName);
         // Add the admin user if it doesn't exist
         if (!dbUser) {
-            dbHelper.registerUser(mName, mPassword);
-            Log.d(TAG, "Admin user registered successfully");
+            boolean userRegistered = dbHelper.registerUser(mName, mPassword);
+            if (userRegistered) {
+                Log.d(TAG, "Admin user registered successfully");
+            }
         }
 
 
@@ -148,8 +147,8 @@ public class LoginActivity extends AppCompatActivity {
 
 
             // Check if the user credentials are valid in the database
-            dbUser = dbHelper.checkUserCredentials(mUserNameInput, mPasswordInput);
-            Log.d(TAG, "User exist in the DB: " + dbUser);
+            dbUser = dbHelper.validateUserCredentials(mUserNameInput, mPasswordInput);
+            Log.d(TAG, "User and Password are valid in the database: " + dbUser);
 
             // If the user credentials are valid, log them in and start the Database activity
             if (dbUser) {
@@ -176,7 +175,7 @@ public class LoginActivity extends AppCompatActivity {
                         Snackbar.LENGTH_SHORT).show();
                 loginTempTextOutput.setVisibility(View.VISIBLE);
                 loginTempTextOutput.setText(R.string.login_failed_message);
-                return;
+                // return;
             }
         }
     }
@@ -199,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
             if (!mUserNameInput.trim().isEmpty() && !mPasswordInput.trim().isEmpty()) {
 
                 // Check if the user admin exists in the database
-                dbUser = dbHelper.checkUserCredentials(mUserNameInput, mPasswordInput);
+                dbUser = dbHelper.checkUserCredentials(mUserNameInput);
                 // Add the admin user if it doesn't exist
                 if (!dbUser) {
                     dbHelper.registerUser(mUserNameInput, mPasswordInput);

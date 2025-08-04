@@ -1,12 +1,19 @@
 package com.zybooks.mobile2app;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
@@ -17,19 +24,18 @@ import java.util.List;
  * *********************************************************************************************/
 public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHolder> {
 
-    private List<TableRowData> dataList;
-    private OnDeleteClickListener deleteClickListener;
-
-    // Constructor - takes in a list of TableRowData objects (used to populate the RecyclerView)
-    public TableAdapter(List<TableRowData> dataList) {
-        this.dataList = dataList;
-    }
+    private final List<TableRowData> DATALIST;
+    private final DatabaseHelper dbHelper;
+    private final OnDeleteClickListener deleteClickListener;
 
     // *********************************************************************************************
-    /* TODO: Constructor - takes in a list of TableRowData objects and an OnDeleteClickListener
+    /* TODO: Constructor - takes in a list of TableRowData objects and an OnDeleteClickListener and
+     *  sets them as instance variables. The OnDeleteClickListener is used to handle delete button
+     *  clicks, and the DatabaseHelper is used to update the database.
      **********************************************************************************************/
-    public TableAdapter(List<TableRowData> dataList, OnDeleteClickListener listener) {
-        this.dataList = dataList;
+    public TableAdapter(List<TableRowData> dataList, DatabaseHelper dbHelper, OnDeleteClickListener listener) {
+        this.DATALIST = dataList;
+        this.dbHelper = dbHelper;
         this.deleteClickListener = listener;
     }
 
@@ -82,7 +88,8 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
      * ********************************************************************************************/
     @Override
     public void onBindViewHolder(TableViewHolder holder, int position) {
-        TableRowData row = dataList.get(position);
+
+        TableRowData row = DATALIST.get(position);
 
         // Load image from file path if available
         if (row.getColumn1() != null && !row.getColumn1().isEmpty()) {
@@ -108,10 +115,78 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
                 deleteClickListener.onDeleteClick(holder.getAdapterPosition(), row);
             }
         });
+
+    /* *********************************************************************************************
+     * Todo: Add a long click listener to the row item to
+     *  trigger a dialog when a row in a RecyclerView is long-pressed
+     * ********************************************************************************************/
+        // Get the item for the selected row
+        TableRowData item = DATALIST.get(position);
+
+        // Set the long click listener for every row
+        holder.itemView.setOnLongClickListener(view -> {
+            // Open the Quantity Dialog when a row is long-pressed
+            showQuantityDialog(view.getContext(), item, position);
+            return true;
+        });
+    }
+
+    /* *********************************************************************************************
+     * Todo: Open a dialog to allow the user to adjust the quantity of an item in the RecyclerView
+     *  and update the database accordingly
+     * ********************************************************************************************/
+    private void showQuantityDialog(Context context, TableRowData item, int position) {
+        // Creates an `EditText` field to be used as the input field inside the dialog
+        final EditText input = new EditText(context);
+
+        // Sets the input type to number only and sets the hint text
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Enter new quantity");
+
+        // Create an AlertDialog
+        new AlertDialog.Builder(context)
+                .setTitle("Adjust Quantity")
+                // Embed the EditText
+                .setView(input)
+                // Define the buttons for the dialog
+                .setPositiveButton("Update", (dialog, which) -> {
+                    // Get the new quantity from the input field
+                    String inputText = input.getText().toString().trim();
+                    if (!inputText.isEmpty()) {
+                        // Parse the new quantity as an integer
+                        int newQuantity = Integer.parseInt(inputText);
+                        // Updates the quantity field (column 4) of the data model
+                        item.setColumn4(newQuantity);
+                        // Update the RecyclerView
+                        notifyItemChanged(position);
+
+                        // Update the database
+                        boolean success = dbHelper.updateItemQuantity(item.getColumn2(), newQuantity);
+                        if (!success) {
+                            Toast.makeText(context, "Database update failed", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Item quantity updated successfully", Toast.LENGTH_SHORT).show();
+
+                            // Get item's minimum quantity from the database
+                            int minQuantity = dbHelper.getMinQuantity(item.getColumn2());
+                            Log.d("PrintLog", "Item's " + item.getColumn3() +
+                                    " minimum quantity: " + minQuantity);
+                            Toast.makeText(context, "Item's " + item.getColumn3() +
+                                    " minimum quantity: " + minQuantity, Toast.LENGTH_LONG).show();
+
+                            if (newQuantity < minQuantity) {
+                                Log.d("PrintLog", "Item " + item.getColumn3() +
+                                        " below minimum quantity! -> SEND SMS ");
+                            }
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override
     public int getItemCount() {
-        return dataList.size();
+        return DATALIST.size();
     }
 }
