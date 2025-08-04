@@ -65,7 +65,6 @@ public class LoginActivity extends AppCompatActivity {
         // Check if the database exists
         try{
             boolean exists = dbHelper.doesDatabaseExist(this, DATABASE_NAME);
-            // Log.d(TAG, "DATABASE Check - Database exists: " + exists);
 
             // TODO: If the database doesn't exist, create it and open the readable/writable database
             db = dbHelper.getReadableDatabase();
@@ -91,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Retrieve the "loggedIn" boolean from the bottom_nav_menu.xml Intent and log user out
         loggedIn = getIntent().getBooleanExtra("loggedIn", false);
-        Log.d(TAG, "Login status: " + loggedIn);
+        Log.d(TAG, "User Login status: " + loggedIn);
 
         // Identify the EditTexts in the layout file
         mUserName = findViewById(R.id.username);
@@ -165,11 +164,11 @@ public class LoginActivity extends AppCompatActivity {
                 loggedIn = true;
                 Log.d(TAG, "User Login Status: " + loggedIn);
 
-                // Create an Intent to start the DatabaseActivity after the two second delay
+                // Create an Intent to start the DatabaseActivity after the one second delay
                 view.postDelayed(() -> {
                     // Start the Database activity view
                     startActivity(new Intent(this, DatabaseActivity.class));
-                }, 1500);
+                }, 1250);
 
             } else {
                 // TODO: implement login logic if username or password is incorrect
@@ -196,18 +195,25 @@ public class LoginActivity extends AppCompatActivity {
             String mPasswordInput = mUserPassword.getText().toString();
             Log.d(TAG, "User Register Input: " + mUserNameInput + "/" + mPasswordInput);
 
+            // Validate the user input that is not empty
             if (!mUserNameInput.trim().isEmpty() && !mPasswordInput.trim().isEmpty()) {
-                // FIXME: implement user registration logic in the user database.
-                // Set the temporary username and password variables
-                mName = mUserNameInput;
-                mPassword = mPasswordInput;
-                // Mark the user as logged in
-                loginTempTextOutput.setVisibility(View.VISIBLE);
-                loginTempTextOutput.setText(R.string.register_success_message);
-                Toast.makeText(this, R.string.register_success_message,
-                        Toast.LENGTH_SHORT).show();
+
+                // Check if the user admin exists in the database
+                dbUser = dbHelper.checkUserCredentials(mUserNameInput, mPasswordInput);
+                // Add the admin user if it doesn't exist
+                if (!dbUser) {
+                    dbHelper.registerUser(mUserNameInput, mPasswordInput);
+                    loginTempTextOutput.setVisibility(View.VISIBLE);
+                    loginTempTextOutput.setText(R.string.register_success_message);
+                    Log.d(TAG, "New user registered successfully");
+                } else {
+                    // Display the failed add user message in the TextView
+                    loginTempTextOutput.setVisibility(View.VISIBLE);
+                    loginTempTextOutput.setText(R.string.register_user_exists_message);
+                    Log.d(TAG, "User already exists in the database...");
+                }
             } else {
-                // TODO: implement register logic if username or password is incorrect (database connection...)
+                // TODO: implement register logic if username or password is incorrect
                 loginTempTextOutput.setVisibility(View.VISIBLE);
                 loginTempTextOutput.setText(R.string.register_failed_message);
             }

@@ -35,4 +35,9 @@ public class TableRowData {
     public void setColumn2(String column2) { this.column2 = column2; }
     public void setColumn3(String column3) { this.column3 = column3; }
     public void setColumn4(int column4) { this.column4 = column4; }
+
+    @Override
+    public String toString() {
+        return "SKU: " + column2 + ", Name: " + column3 + ", Quantity: " + column4 + ", ImagePath: " + imagePath;
+    }
 }

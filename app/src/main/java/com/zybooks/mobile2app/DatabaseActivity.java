@@ -3,6 +3,7 @@ package com.zybooks.mobile2app;
 import static java.lang.Math.random;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -35,9 +36,13 @@ public class DatabaseActivity extends AppCompatActivity {
     public MaterialToolbar top_menu_toolbar;
     public FloatingActionButton fab_button;
     public RecyclerView recyclerView;
-    public List<TableRowData> tableData;
+    // public List<TableRowData> tableData;
     ConstraintLayout mActivityDatabase;
     Intent intentToLoginActivity, intentFromAddItemActivity, intentToNotificationActivity;
+
+    // Database variables to be used in the LoginActivity
+    private DatabaseHelper dbHelper;
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +56,24 @@ public class DatabaseActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        // TODO: Create the database if it doesn't exist
+        // Items stored at /data/data/com.zybooks.mobile2app/databases/mobile2app.db
+        // Create the database helper object
+        dbHelper = new DatabaseHelper(this);
+
+        // Check if the database exists
+        try{
+            // TODO: Try to open the readable/writable database
+            db = dbHelper.getReadableDatabase();
+            Log.d(TAG, "DATABASE Check - Database exist and ready for reading: " + db.isOpen());
+            // Close the database
+            db.close();
+        } catch (Exception e) {
+            Log.d(TAG, "DATABASE Check - Database does not exist: failed!");
+            e.printStackTrace();
+        }
 
 
         /*  TODO: Create the top menu ActionBar and enable the Back button
@@ -142,21 +165,8 @@ public class DatabaseActivity extends AppCompatActivity {
         // Set a layout through the RecyclerView linear layout manager
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Create a new ArrayList to store the table data row by row
-        tableData = new ArrayList<>();
-        // Create Random object (To be removed as database connected)
-        Random random = new Random();
-
-        // Add data to the tableData list (To be removed as database connected)
-        for (int i = 0; i < 5; i++) {
-            int qty = random.nextInt(100);
-            String sku = "A1B2" + qty;
-            String itemName = "Item " + (i + 1);
-            tableData.add(new TableRowData(sku, itemName, qty));
-        }
-
         /* *****************************************************************************************
-         *  TODO: Check if additional data was retrieved from AddItemActivity through an intent pass.
+         *  TODO: Check if data was retrieved from AddItemActivity through an intent pass.
          *   If so, add it to the tableData list.
          * ****************************************************************************************/
         // Catch the Intent and extract the extras (SKU, Name, Quantity) if intent came from
@@ -173,19 +183,44 @@ public class DatabaseActivity extends AppCompatActivity {
                     + itemImage + ", SKU: " + itemSku + ", Name: "
                     + itemName + ", Quantity: " + itemQuantity);
 
-            // Add the retrieved data to the table data list in the database before it sent to RecyclerView
-            if (itemSku != null && itemName != null) {
-                tableData.add(new TableRowData(itemImage, itemSku, itemName, itemQuantity));
+            // TODO: Add the retrieved data to the tableData list
+            // Check if the SKU already exists in the database
+            if (!dbHelper.isSKUExists(itemSku)) {
+                // Add the retrieved data to the table data list in the database before it sent to RecyclerView
+                boolean itemAdded = dbHelper.addItem(itemImage, itemSku, itemName, itemQuantity);
+                if (itemAdded) {
+                    Log.d(TAG, "Item " + itemName + " added to database successfully");
+                    // Clear intent extras after processing to avoid re-adding
+                    setIntent(new Intent());
+                } else {
+                    Snackbar.make(mActivityDatabase, getString(R.string.add_item_error),
+                            Snackbar.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(this, R.string.sku_exist_error, Toast.LENGTH_LONG).show();
+                Log.d(TAG, "Can't add Item " + itemName + ": already exists in database - SKU is UNIQUE");
             }
+            // Clear intent extras after processing to avoid re-adding
+            setIntent(new Intent());
         }
 
         /* ****************************************************************************************/
         /*  TODO: Set the adapter for the RecyclerView with delete click listener
+         *   This method will call the getAllItems() method from the DatabaseHelper class
+         *   and populate the tableData list with the retrieved data through the TableAdapter() constructor
          * ****************************************************************************************/
-        TableAdapter adapter = new TableAdapter(tableData, (position, rowData) -> {
-            tableData.remove(position);
-            recyclerView.getAdapter().notifyItemRemoved(position);
-            recyclerView.getAdapter().notifyItemRangeChanged(position, tableData.size());
+        TableAdapter adapter = new TableAdapter(dbHelper.getAllItems(), (position, rowData) -> {
+            boolean deleted = dbHelper.deleteItem(rowData.getColumn2());
+
+            if (deleted) {
+                Log.d(TAG, "Item " + rowData.getColumn3() + " deleted from database successfully");
+                Toast.makeText(this, "Item " + rowData.getColumn3()
+                        + " deleted successfully", Toast.LENGTH_SHORT).show();
+                // Reload activity
+                recreate();
+            } else {
+                Log.d(TAG, "Failed to delete item " + rowData.getColumn3() + " from database");
+            }
         });
 
         /* ****************************************************************************************/

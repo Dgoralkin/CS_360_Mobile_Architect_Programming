@@ -3,11 +3,14 @@ package com.zybooks.mobile2app;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /* *********************************************************************************************
@@ -50,14 +53,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             String createUsersTable = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + " (" +
                     COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_USERNAME + " TEXT NOT NULL, " +
+                    COLUMN_USERNAME + " TEXT NOT NULL UNIQUE, " +
                     COLUMN_PASSWORD + " TEXT NOT NULL)";
 
             // Create table for items if it doesn't exist
             String createItemsTable = "CREATE TABLE IF NOT EXISTS " + TABLE_ITEMS + " (" +
                     COLUMN_ITEM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_IMAGE_PATH + " TEXT, " +
-                    COLUMN_SKU + " TEXT NOT NULL, " +
+                    COLUMN_SKU + " TEXT NOT NULL UNIQUE, " +
                     COLUMN_NAME + " TEXT NOT NULL, " +
                     COLUMN_QUANTITY + " INTEGER NOT NULL" + ")";
 
@@ -119,4 +122,71 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
     // ---------- END OF USER TABLE METHODS ----------
+
+
+    // ---------- ITEMS TABLE METHODS ----------
+    // This method will return a TableRowData list of all the items in the database
+    public List<TableRowData> getAllItems() {
+        List<TableRowData> items = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM items order by name", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+                String sku = cursor.getString(cursor.getColumnIndexOrThrow("sku"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int quantity = cursor.getInt(cursor.getColumnIndexOrThrow("quantity"));
+
+                TableRowData item = new TableRowData(imagePath, sku, name, quantity);
+                items.add(item);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return items;
+    }
+
+    // This method will add a new item to the database
+    public boolean addItem(String imagePath, String sku, String name, int quantity) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_IMAGE_PATH, imagePath);
+        values.put(COLUMN_SKU, sku);
+        values.put(COLUMN_NAME, name);
+        values.put(COLUMN_QUANTITY, quantity);
+
+        try {
+            long result = db.insertOrThrow(TABLE_ITEMS, null, values);
+            return result != -1;
+        } catch (SQLiteConstraintException e) {
+            Log.e("DB_ERROR", "Duplicate SKU insertion attempt: " + sku, e);
+            return false;
+        }
+    }
+
+    // Delete item by SKU
+    public boolean deleteItem(String sku) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int rowsDeleted = db.delete(TABLE_ITEMS, "sku = ?", new String[]{sku});
+        db.close();
+        return rowsDeleted > 0;
+    }
+
+    // Search the table for an item by SKU, return True if found, False otherwise
+    public boolean isSKUExists(String sku) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_ITEMS,
+                new String[]{COLUMN_SKU},
+                COLUMN_SKU + " = ?",
+                new String[]{sku},
+                null, null, null
+        );
+
+        // True if at least one row matches
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
+    }
+    // ---------- END OF THE ITEMS TABLE METHODS ----------
 }

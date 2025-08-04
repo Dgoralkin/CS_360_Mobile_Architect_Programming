@@ -94,7 +94,7 @@ public class NotificationActivity extends AppCompatActivity {
         //  Find the NavHostFragment from the activity_database.xml layout
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         // Update the bottom navigation view with the navigation controller
-        bottomNav.setSelectedItemId(R.id.nav_database);
+        bottomNav.setSelectedItemId(R.id.nav_notification);
 
         // Handle navigation item clicks from the navigation bar
         bottomNav.setOnItemSelectedListener(item -> {
