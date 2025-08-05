@@ -2,6 +2,7 @@ package com.zybooks.mobile2app;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
@@ -30,6 +32,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +45,7 @@ public class NotificationActivity extends AppCompatActivity {
     public FloatingActionButton fab_button;
     public RecyclerView recyclerView;
     public List<TableRowData> tableData;
+    private NotificationAdapter notificationAdapter;
     ConstraintLayout mActivityNotification;
     Intent intentToDatabaseActivity;
     // Set a constant for the SMS permission request code tag
@@ -60,6 +64,33 @@ public class NotificationActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        /*  TODO: Create and show an AlertDialog only once when the activity starts
+         *    to guide user how to use the app.
+         * *****************************************************************************************/
+        // Flag to ensure the dialog only appears once, the first time the activity starts
+        SharedPreferences prefs = getSharedPreferences("app_notification_prefs", MODE_PRIVATE);
+
+        // FIXME: To clear all preferences including (first time launch tip) activate the line below
+        // prefs.edit().clear().apply();
+
+        // Check if the tip has been shown
+        boolean tip2Shown = prefs.getBoolean("tip_2_shown", false);
+
+        if (!tip2Shown) {
+            // Set the dialog message and button text
+            new AlertDialog.Builder(this)
+                    .setTitle("Usage Tip 2")
+                    .setMessage("Set the minimum QTY field to alert you if inventory drops below " +
+                            "the threshold.")
+                    .setPositiveButton("OK!", (dialog, which) -> {
+                        // Save that the tip was shown
+                        prefs.edit().putBoolean("tip_2_shown", true).apply();
+                    })
+                    // Show the dialog
+                    .show();
+        }
 
 
         /* TODO: The checkSmsPermission() method checks for the SMS permission and query the
@@ -168,16 +199,17 @@ public class NotificationActivity extends AppCompatActivity {
     // -----------------------      onCreate ends here      -----------------------
 
 
-    /* *********************************************************************************************
-     *  TODO: Populate the menu in the ActionBar
-     * ********************************************************************************************/
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // tell Android to use your res/menu/app_bar_menu.xml to populate the toolbar menu.
-        getMenuInflater().inflate(R.menu.app_bar_menu, menu);
-        Log.d(TAG, "In Notification Activity: Top app_bar_menu inflated");
-        return true;
+    protected void onResume() {
+        super.onResume();
+
+        if (notificationAdapter != null) {
+            List<TableRowData> updatedList = dbHelper.getItemImgNameMinQuantity();
+            if (updatedList == null) updatedList = new ArrayList<>();
+            notificationAdapter.setData(updatedList);
+        }
     }
+    // -----------------------      onResume ends here      -----------------------
 
 
     /* *********************************************************************************************

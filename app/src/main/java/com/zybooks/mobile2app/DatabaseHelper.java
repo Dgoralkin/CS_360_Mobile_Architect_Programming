@@ -166,10 +166,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 String imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+                String sku = cursor.getString(cursor.getColumnIndexOrThrow("sku"));
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 int quantity_min = cursor.getInt(cursor.getColumnIndexOrThrow("quantity_min"));
 
-                TableRowData item = new TableRowData(imagePath, name, quantity_min);
+                TableRowData item = new TableRowData(imagePath, sku, name, 0 , quantity_min);
                 items.add(item);
             } while (cursor.moveToNext());
         }
@@ -244,7 +245,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // This method will update the quantity of an item in the database based on its ID
+    // This method will update the quantity of an item in the database based on its unique UPC
     // Returns true if the update was successful, false otherwise
     // Reads commands from the TableAdapter class in the showQuantityDialog
     public boolean updateItemQuantity(String sku, int newQuantity) {
@@ -253,6 +254,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         // Set the new quantity
         values.put(COLUMN_QUANTITY, newQuantity);
+
+        // Execute the query and update the item in the database
+        int rowsAffected = db.update(TABLE_ITEMS, values, "sku = ?", new String[]{sku});
+        // Return true if updated
+        return rowsAffected > 0;
+    }
+
+
+    // This method will update the minimum allowed quantity of an item in the database based on its
+    // unique UPC. Returns true if the update was successful, false otherwise
+    // Reads commands from the NotificationAdapter class in the updateMinQuantity() method
+    public boolean updateItemMinQuantity(String sku, int newMinQuantity) {
+        // Get the database
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        // Set the new quantity
+        values.put(COLUMN_QUANTITY_MIN, newMinQuantity);
 
         // Execute the query and update the item in the database
         int rowsAffected = db.update(TABLE_ITEMS, values, "sku = ?", new String[]{sku});

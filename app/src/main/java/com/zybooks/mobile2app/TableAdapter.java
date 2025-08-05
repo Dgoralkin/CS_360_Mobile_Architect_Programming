@@ -172,8 +172,6 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
                             int minQuantity = dbHelper.getMinQuantity(item.getColumn2());
                             Log.d("PrintLog", "Item's " + item.getColumn3() +
                                     " minimum quantity: " + minQuantity + ". New on hand QTY set to: " + newQuantity);
-                            /* Toast.makeText(context, "Item's " + item.getColumn3() +
-                                    " minimum quantity: " + minQuantity, Toast.LENGTH_LONG).show();*/
 
                             if (newQuantity < minQuantity) {
                                 Log.d("PrintLog", "Item " + item.getColumn3() +

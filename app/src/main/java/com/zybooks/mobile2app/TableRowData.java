@@ -10,17 +10,18 @@ public class TableRowData {
     private int column4, column5;
 
     // Constructor
-    public TableRowData(String imagePath , String col2, String col3, int col4) {
+    public TableRowData(String imagePath , String sku, String name, int quantity) {
         this.imagePath = imagePath;
-        this.column2 = col2;
-        this.column3 = col3;
-        this.column4 = col4;
+        this.column2 = sku;
+        this.column3 = name;
+        this.column4 = quantity;
     }
 
-    public TableRowData(String imagePath, String col3, int col5) {
+    public TableRowData(String imagePath , String sku, String name, int quantity, int min_quantity) {
         this.imagePath = imagePath;
-        this.column3 = col3;
-        this.column5 = col5;
+        this.column2 = sku;
+        this.column3 = name;
+        this.column5 = min_quantity;
     }
 
     // Getters
