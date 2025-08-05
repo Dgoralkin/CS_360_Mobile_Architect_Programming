@@ -7,7 +7,7 @@ package com.zybooks.mobile2app;
  * *********************************************************************************************/
 public class TableRowData {
     private String imagePath, column2, column3;
-    private int column4;
+    private int column4, column5;
 
     // Constructor
     public TableRowData(String imagePath , String col2, String col3, int col4) {
@@ -17,11 +17,10 @@ public class TableRowData {
         this.column4 = col4;
     }
 
-    public TableRowData(String col2, String col3, int col4) {
-        this.imagePath = null;
-        this.column2 = col2;
+    public TableRowData(String imagePath, String col3, int col5) {
+        this.imagePath = imagePath;
         this.column3 = col3;
-        this.column4 = col4;
+        this.column5 = col5;
     }
 
     // Getters
@@ -29,15 +28,18 @@ public class TableRowData {
     public String getColumn2() { return column2; }
     public String getColumn3() { return column3; }
     public int getColumn4() { return column4; }
+    public int getColumn5() { return column5; }
 
     // Setters
     public void setColumn1(String column1) { this.imagePath = column1; }
     public void setColumn2(String column2) { this.column2 = column2; }
     public void setColumn3(String column3) { this.column3 = column3; }
     public void setColumn4(int column4) { this.column4 = column4; }
+    public void setColumn5(int column5) { this.column5 = column5; }
 
     @Override
     public String toString() {
-        return "SKU: " + column2 + ", Name: " + column3 + ", Quantity: " + column4 + ", ImagePath: " + imagePath;
+        return "SKU: " + column2 + ", Name: " + column3 + ", Quantity: " + column4 +
+                ", ImagePath: " + imagePath + ", quantity_min: " + column5;
     }
 }

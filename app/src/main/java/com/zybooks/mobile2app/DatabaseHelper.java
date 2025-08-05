@@ -37,7 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_QUANTITY = "quantity";
     public static final String COLUMN_QUANTITY_MIN = "quantity_min";
-    public static final int ITEM_QUANTITY_MIN = 10;
+    public static final int ITEM_QUANTITY_MIN = 0;
 
 
     // Constructor
@@ -150,6 +150,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 int quantity = cursor.getInt(cursor.getColumnIndexOrThrow("quantity"));
 
                 TableRowData item = new TableRowData(imagePath, sku, name, quantity);
+                items.add(item);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return items;
+    }
+
+    // This method will return a TableRowData list of all the items in the database
+    public List<TableRowData> getItemImgNameMinQuantity() {
+        List<TableRowData> items = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM items order by name", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int quantity_min = cursor.getInt(cursor.getColumnIndexOrThrow("quantity_min"));
+
+                TableRowData item = new TableRowData(imagePath, name, quantity_min);
                 items.add(item);
             } while (cursor.moveToNext());
         }

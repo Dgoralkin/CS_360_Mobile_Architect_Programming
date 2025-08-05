@@ -51,5 +51,6 @@
     <string name="Notification_btn_decrement">−</string>
     <string name="Notification_btn_increment">+</string>
     <string name="Notification_edit_view_quantity">1</string>
+    <string name="Minimum_QTY_allowed">Min QTY allowed</string>
 
 </resources>

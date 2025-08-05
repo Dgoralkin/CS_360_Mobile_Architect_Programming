@@ -79,7 +79,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
     @Override
     public TableViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.table_row_database_item, parent, false);
+                .inflate(R.layout.table_row_database, parent, false);
         return new TableViewHolder(view);
     }
 

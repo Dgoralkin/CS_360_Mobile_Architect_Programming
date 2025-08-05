@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -46,6 +47,7 @@ public class NotificationActivity extends AppCompatActivity {
     // Set a constant for the SMS permission request code tag
     private static final int SMS_PERMISSION_CODE = 101;
     private static boolean smsPermissionGranted = false;
+    DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +79,28 @@ public class NotificationActivity extends AppCompatActivity {
         btnSendStatusReport.setOnClickListener(v -> sendSMSNotification());
 
 
+        /*  TODO: Initialize the RecyclerView in the activity_notification.xml layout
+         *   This block will query data from the database and inflate the RecyclerView in activity_notification.xml
+         * ****************************************************************************************/
+        // Find the RecyclerView from the activity_notification.xml layout
+        RecyclerView recyclerView = findViewById(R.id.notificationRecyclerView);
+
+        // Initialize the database helper class
+        dbHelper = new DatabaseHelper(this);
+
+        // Get the data from the database to display in the RecyclerView
+        List<TableRowData> tableData = dbHelper.getItemImgNameMinQuantity();
+
+        // Set layout manager and adapter
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Create the adapter with the data and database helper class
+        NotificationAdapter adapter = new NotificationAdapter(this, tableData, dbHelper);
+        // Set the adapter
+        recyclerView.setAdapter(adapter);
+
+
         /*  TODO: Create the top menu Notification Activity and enable the Back button
-         * *****************************************************************************************/
+         * ****************************************************************************************/
         // Find the top menu ActionBar id from the activity_database.xml layout
         top_menu_toolbar = findViewById(R.id.topAppBar);
         // Set up the top menu ActionBar with the MaterialToolbar
@@ -156,6 +178,8 @@ public class NotificationActivity extends AppCompatActivity {
         Log.d(TAG, "In Notification Activity: Top app_bar_menu inflated");
         return true;
     }
+
+
     /* *********************************************************************************************
      *  TODO: Handle the app_bar_menu navigation bar from the top menu. Implements functionality for:
      *   1. Back button, 2. Settings button, 3. About button
@@ -221,6 +245,8 @@ public class NotificationActivity extends AppCompatActivity {
             smsPermissionGranted = true;
         }
     }
+
+
     /* *********************************************************************************************
      *  TODO: Automatic call by the Android system as response to ActivityCompat.requestPermissions()
      *   and user's response to output the permission results to the UI.
