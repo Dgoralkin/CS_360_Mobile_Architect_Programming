@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <!-- Set required permissions to send notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Set required permissions to send SMS messages -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 

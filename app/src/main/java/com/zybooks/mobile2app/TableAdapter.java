@@ -79,7 +79,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
     @Override
     public TableViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.table_row_item, parent, false);
+                .inflate(R.layout.table_row_database_item, parent, false);
         return new TableViewHolder(view);
     }
 
@@ -133,7 +133,8 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
 
     /* *********************************************************************************************
      * Todo: Open a dialog to allow the user to adjust the quantity of an item in the RecyclerView
-     *  and update the database accordingly
+     *  and update the database accordingly.
+     *  If the new quantity is below the minimum quantity, a notification will be sent to the user.
      * ********************************************************************************************/
     private void showQuantityDialog(Context context, TableRowData item, int position) {
         // Creates an `EditText` field to be used as the input field inside the dialog
@@ -170,13 +171,21 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
                             // Get item's minimum quantity from the database
                             int minQuantity = dbHelper.getMinQuantity(item.getColumn2());
                             Log.d("PrintLog", "Item's " + item.getColumn3() +
-                                    " minimum quantity: " + minQuantity);
-                            Toast.makeText(context, "Item's " + item.getColumn3() +
-                                    " minimum quantity: " + minQuantity, Toast.LENGTH_LONG).show();
+                                    " minimum quantity: " + minQuantity + ". New on hand QTY set to: " + newQuantity);
+                            /* Toast.makeText(context, "Item's " + item.getColumn3() +
+                                    " minimum quantity: " + minQuantity, Toast.LENGTH_LONG).show();*/
 
                             if (newQuantity < minQuantity) {
                                 Log.d("PrintLog", "Item " + item.getColumn3() +
-                                        " below minimum quantity! -> SEND SMS ");
+                                        " is below the allowed minimum quantity!" +
+                                        " -> Sending notification if permitted...");
+
+                                // TODO: Send a notification
+                                // A notification will be sent to the user if the new quantity is
+                                // below the minimum quantity. The NotificationHelper() class is used
+                                // to send the notification.
+                                NotificationHelper.sendLowStockNotification(context,
+                                        item.getColumn3(), newQuantity);
                             }
                         }
                     }

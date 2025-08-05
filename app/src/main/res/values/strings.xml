@@ -44,9 +44,12 @@
 
     <!-- Strings used for the SMS notification layout in the notification activity -->
     <string name="sms_permission_not_granted">SMS permission status:</string>
-    <string name="enable_sms_notifications">Check SMS Notification Status</string>
+    <string name="enable_sms_notifications">Send Low Inventory Report</string>
     <string name="sms_permission_already_granted">SMS permission already granted.</string>
     <string name="sms_permission_granted">SMS permission granted</string>
     <string name="sms_permission_denied">SMS permission denied</string>
+    <string name="Notification_btn_decrement">−</string>
+    <string name="Notification_btn_increment">+</string>
+    <string name="Notification_edit_view_quantity">1</string>
 
 </resources>

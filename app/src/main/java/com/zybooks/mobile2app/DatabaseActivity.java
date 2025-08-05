@@ -1,8 +1,11 @@
 package com.zybooks.mobile2app;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +17,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -78,7 +83,7 @@ public class DatabaseActivity extends AppCompatActivity {
         // Flag to ensure the dialog only appears once, the first time the activity starts
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
 
-        // FIXME: To clear all preferences
+        // FIXME: To clear all preferences including (first time launch tip) activate the line below
         // prefs.edit().clear().apply();
 
         // Check if the tip has been shown
@@ -97,6 +102,18 @@ public class DatabaseActivity extends AppCompatActivity {
                     .show();
         }
 
+
+        /*  TODO: Request user notification permission for Android 13 and above to send notifications
+         *   Notifications will be sent from the NotificationActivity class and from this class when
+         *   user adjust the quantity of an item in the database below the preset threshold.
+         * *****************************************************************************************/
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
 
         /*  TODO: Create the top menu ActionBar and enable the Back button
         * *****************************************************************************************/

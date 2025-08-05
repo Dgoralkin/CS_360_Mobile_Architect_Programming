@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -44,6 +45,7 @@ public class NotificationActivity extends AppCompatActivity {
     Intent intentToDatabaseActivity;
     // Set a constant for the SMS permission request code tag
     private static final int SMS_PERMISSION_CODE = 101;
+    private static boolean smsPermissionGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +66,15 @@ public class NotificationActivity extends AppCompatActivity {
         // Check for SMS permission automatically as activity starts
         checkSmsPermission();
 
-        // Check for SMS permission manually upon button click and user request
+
+        /* TODO: Send SMS with low inventory report upon button click and user request after checking
+        *   for SMS permission. If permission is not granted, a notification will be sent to the
+        *   user instead.
+        * *****************************************************************************************/
         // Find the button from the activity_notification.xml layout
-        Button btnCheckSmsStatus = findViewById(R.id.btnCheckSmsStatus);
-        btnCheckSmsStatus.setOnClickListener(v -> checkSmsPermission());
+        MaterialButton btnSendStatusReport = findViewById(R.id.btnSendStatusReport);
+        // Set the button click listener to call the sendSMSNotification() method
+        btnSendStatusReport.setOnClickListener(v -> sendSMSNotification());
 
 
         /*  TODO: Create the top menu Notification Activity and enable the Back button
@@ -210,6 +217,8 @@ public class NotificationActivity extends AppCompatActivity {
 
             // Permission already granted
             smsStatusText.setText(R.string.sms_permission_already_granted);
+            // Set the SMS permission flag to true
+            smsPermissionGranted = true;
         }
     }
     /* *********************************************************************************************
@@ -227,11 +236,32 @@ public class NotificationActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 smsStatusText.setText(R.string.sms_permission_granted);
                 Log.d(TAG, "In Notification Activity: SMS permission granted");
+                // Set the SMS permission flag to true
+                smsPermissionGranted = true;
             } else {
                 // If permission denied -> update the UI accordingly
                 smsStatusText.setText(R.string.sms_permission_denied);
                 Log.d(TAG, "In Notification Activity: SMS permission denied");
+                // Set the SMS permission flag to false
+                smsPermissionGranted = false;
             }
         }
+    }
+    public boolean sendSMSNotification() {
+        Log.d(TAG, "In Notification Activity: sendSMSNotification() called");
+        if (smsPermissionGranted) {
+            Log.d(TAG, "In Notification Activity: SMS permission granted: " + smsPermissionGranted);
+            Log.d(TAG, "ADD SMS CODE HERE ->>>");
+            return true;
+        } else {
+            Log.d(TAG, "In Notification Activity: SMS permission NOT granted: " + smsPermissionGranted);
+            // TODO: Send a notification
+            // A notification will be sent to the user if the new quantity is
+            // below the minimum quantity. The NotificationHelper() class is used
+            // to send the notification.
+            NotificationHelper.sendLowStockNotification(NotificationActivity.this,
+                    "Low Stock Alert", 1111);
+        }
+        return smsPermissionGranted;
     }
 }
