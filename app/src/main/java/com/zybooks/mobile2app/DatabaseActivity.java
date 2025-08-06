@@ -100,6 +100,16 @@ public class DatabaseActivity extends AppCompatActivity {
                     })
                     // Show the dialog
                     .show();
+
+            // TODO: If the database is empty, populate it with three example items
+            for (int i = 1; i <= 3; i++) {
+                String imagePath = "imagePath" + i;
+                String sku = "SKU123-" + i;
+                String name = "Item " + i;
+                int quantity = 5 + i; // example: 6, 7, 8
+                // Add the example item to the database
+                dbHelper.addItem(null, sku, name, quantity);
+            }
         }
 
 
@@ -165,7 +175,6 @@ public class DatabaseActivity extends AppCompatActivity {
                 Log.d(TAG, "In Database Activity: Database button clicked");
                 return true;
 
-            // FIXME: Activate for notification fragment as added
             // Go to Notification Activity from DatabaseActivity
             }  else if (itemId == R.id.nav_notification) {
                 intentToNotificationActivity = new Intent(DatabaseActivity.this, NotificationActivity.class);

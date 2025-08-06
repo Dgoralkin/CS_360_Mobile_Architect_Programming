@@ -183,7 +183,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
                                 // below the minimum quantity. The NotificationHelper() class is used
                                 // to send the notification.
                                 NotificationHelper.sendLowStockNotification(context,
-                                        item.getColumn3(), newQuantity);
+                                        item.getColumn3(), newQuantity, "Low Inventory Alert");
                             }
                         }
                     }

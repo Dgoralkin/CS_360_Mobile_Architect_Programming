@@ -1,6 +1,7 @@
 package com.zybooks.mobile2app;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -305,21 +306,84 @@ public class NotificationActivity extends AppCompatActivity {
             }
         }
     }
-    public boolean sendSMSNotification() {
+
+
+    /* *********************************************************************************************
+     *  TODO: The sendSMSNotification() method is called when the user clicks the button to send
+     *   the low inventory report from activity_notification.xml. If SMS permission is granted,
+     *   a SMS will be sent, otherwise a notification will be sent to the user if notification
+     *   permission is granted. Otherwise, no notification will be sent to the user.
+     * ********************************************************************************************/
+    public void sendSMSNotification() {
         Log.d(TAG, "In Notification Activity: sendSMSNotification() called");
         if (smsPermissionGranted) {
             Log.d(TAG, "In Notification Activity: SMS permission granted: " + smsPermissionGranted);
-            Log.d(TAG, "ADD SMS CODE HERE ->>>");
-            return true;
+
+            // TODO: Call the sendLowStockSMS() method to Send the low stock SMS message.
+            //  Call the lowStockMessageBuilder() method to build the low stock message
+            sendLowStockSMS(NotificationActivity.this,
+                    lowStockMessageBuilder(), 1778549);
         } else {
-            Log.d(TAG, "In Notification Activity: SMS permission NOT granted: " + smsPermissionGranted);
-            // TODO: Send a notification
-            // A notification will be sent to the user if the new quantity is
-            // below the minimum quantity. The NotificationHelper() class is used
-            // to send the notification.
+            Log.d(TAG, "In Notification Activity: SMS permission NOT granted." +
+                    "Sending notification instead");
+            // TODO: Send a notification to the user if SMS permission is not granted.
+            //  the notification will be sent to the user if the new quantity is
+            //  below the minimum quantity. The NotificationHelper() class is used
+            //  to send the notification and the lowStockMessageBuilder() method to build the low stock message
             NotificationHelper.sendLowStockNotification(NotificationActivity.this,
-                    "Low Stock Alert", 1111);
+                    lowStockMessageBuilder(), 1111, "Low Inventory Report");
         }
-        return smsPermissionGranted;
+    }
+
+
+    /* *********************************************************************************************
+     *  TODO: The lowStockMessageBuilder query the database for the low stock items and
+     *   builds the message to be sent to the user via SMS or notification.
+     * ********************************************************************************************/
+    public String lowStockMessageBuilder() {
+        Log.d(TAG, "In Notification Activity: lowStockMessageBuilder() called\n");
+
+        // Query the database for the low stock items
+        List<TableRowData> lowStockItems = dbHelper.getLowStockItems();
+
+        // Build the message to be sent to the user via SMS or notification
+        StringBuilder messageBuilder = new StringBuilder("*** Low Stock Alert! ***\n" +
+                "Please restock the following items which are below threshold:\n");
+
+        // Loop through the low stock items from the database and add them to the message
+        for (TableRowData item : lowStockItems) {
+            messageBuilder.append("Item ")
+                    .append(item.getColumn2())                          // item name
+                    .append(" (Current: ").append(item.getColumn4())    // quantity
+                    .append(", Min: ").append(item.getColumn5())        // quantity_min
+                    .append(")\n");
+        }
+        return messageBuilder.toString();
+    }
+
+
+    /* *********************************************************************************************
+     *  TODO: The sendLowStockNotification() message constructor
+     * ********************************************************************************************/
+    public static void sendLowStockSMS(Context context, String message, int requestCode) {
+        // Phone number example.
+        String phoneNumber = "1234567890";
+
+        try {
+            // Create a new SMS message
+            SmsManager smsManager = SmsManager.getDefault();
+
+            // Send the SMS message
+            smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+
+            // Log the SMS confirmation: the message sent to the user
+            Log.d(TAG, "SMS sent to " + phoneNumber + ":\n" + message);
+            // Display a toast to indicate that the SMS was sent
+            Toast.makeText(context, "SMS sent to " + phoneNumber, Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Log.e(TAG, "SMS failed: " + e.getMessage());
+            Toast.makeText(context, "Failed to send SMS", Toast.LENGTH_SHORT).show();
+        }
     }
 }

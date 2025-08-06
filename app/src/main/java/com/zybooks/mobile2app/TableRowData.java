@@ -21,6 +21,7 @@ public class TableRowData {
         this.imagePath = imagePath;
         this.column2 = sku;
         this.column3 = name;
+        this.column4 = quantity;
         this.column5 = min_quantity;
     }
 

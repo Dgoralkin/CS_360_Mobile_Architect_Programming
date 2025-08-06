@@ -22,7 +22,7 @@ public class NotificationHelper {
 
 
     // sendLowStockNotification() sends a notification when an item is below the minimum quantity
-    public static void sendLowStockNotification(Context context, String itemName, int quantity) {
+    public static void sendLowStockNotification(Context context, String itemName, int quantity, String alertType) {
         Log.d("PrintLog", "In NotificationHelper: Checking notification permissions");
 
         // Check notification permission for Android 13+
@@ -50,18 +50,38 @@ public class NotificationHelper {
             }
         }
 
-        // Build the notification and display it
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.outline_circle_notification)
-                .setContentTitle("Low Inventory Alert")
-                .setContentText("Item " + itemName + " is below minimum quantity: " + quantity)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+        // Todo: Reuse notification method to send notification if permissions granted
 
-        // Get the system notification manager and send the notification
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        // Send the notification with a unique ID
-        manager.notify((int) System.currentTimeMillis(), builder.build());
+        // Notification template #1 - Sent from DatabaseActivity if user updates item quantity and
+        // it is below the defined minimum quantity
+        if ("Low Inventory Alert".equals(alertType)) {
+            // Build the notification and display it
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.outline_circle_notification)
+                    .setContentTitle("Low Inventory Alert")
+                    .setContentText("Item " + itemName + " is below minimum quantity: " + quantity)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+            // Get the system notification manager and send the notification
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            // Send the notification with a unique ID
+            manager.notify((int) System.currentTimeMillis(), builder.build());
+        }
 
+        // Notification template #2 - Sent from Notification activity if user clicks on notification
+        // button to send the Low Inventory Report and SMS permissions are not granted
+        if ("Low Inventory Report".equals(alertType)) {
+            // Build the notification and display it
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.outline_circle_notification)
+                    .setContentTitle("Low Inventory Report")
+                    .setContentText(itemName)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+            // Get the system notification manager and send the notification
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            // Send the notification with a unique ID
+            manager.notify((int) System.currentTimeMillis(), builder.build());
+        }
         Log.d("PrintLog", "In NotificationHelper: Notification sent if permissions granted");
     }
 

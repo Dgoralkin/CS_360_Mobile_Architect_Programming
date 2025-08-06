@@ -37,7 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_QUANTITY = "quantity";
     public static final String COLUMN_QUANTITY_MIN = "quantity_min";
-    public static final int ITEM_QUANTITY_MIN = 0;
+    public static final int ITEM_QUANTITY_MIN = 1;
 
 
     // Constructor
@@ -276,6 +276,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int rowsAffected = db.update(TABLE_ITEMS, values, "sku = ?", new String[]{sku});
         // Return true if updated
         return rowsAffected > 0;
+    }
+
+    // This method will return a TableRowData list of all the items in the database that have a value
+    // of item quantity on hand < defined quantity allowed.
+    public List<TableRowData> getLowStockItems() {
+
+        List<TableRowData> lowStockList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM items WHERE quantity < quantity_min ORDER BY name", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+                String sku = cursor.getString(cursor.getColumnIndexOrThrow("sku"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int quantity = cursor.getInt(cursor.getColumnIndexOrThrow("quantity"));
+                int quantity_min = cursor.getInt(cursor.getColumnIndexOrThrow("quantity_min"));
+
+                TableRowData item = new TableRowData(imagePath, sku, name, quantity, quantity_min);
+                lowStockList.add(item);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return lowStockList;
     }
     // ---------- END OF THE ITEMS TABLE METHODS ----------
 }

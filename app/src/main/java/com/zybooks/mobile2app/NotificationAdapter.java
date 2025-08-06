@@ -99,7 +99,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.quantityEditViewText.setText(String.valueOf(item.getColumn5()));
 
         // Enable direct editing to allow user to change quantity directly from the edit text field
-        holder.quantityEditViewText.setEnabled(true);
+        holder.quantityEditViewText.setEnabled(false);
 
         // Increment minimum quantity for item in database when + button is clicked.
         holder.incrementBtn.setOnClickListener(v -> {
@@ -116,44 +116,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 updateItemMinQuantity(item, newQty, holder.getAdapterPosition());
             } else {
                 Toast.makeText(context, "Quantity cannot be less than 0", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-        /*  TODO: Enable direct editing to allow user to change quantity directly from the edit text
-              field without using the buttons and update the min quantity for the item in the database.
-         * ****************************************************************************************/
-        holder.quantityEditViewText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // Prevent infinite loop
-                holder.quantityEditViewText.removeTextChangedListener(this);
-
-                // Default to 0 if input is empty or invalid
-                int newQty = 0;
-                String input = s.toString().trim();
-
-                if (!input.isEmpty()) {
-                    try {
-                        newQty = Integer.parseInt(input);
-                    } catch (NumberFormatException e) {
-                        Log.w("PrintLog", "Invalid input: " + input);
-                    }
-                }
-
-                // Update the min quantity for the item in the database
-                if (newQty != item.getColumn5()) {
-                    updateItemMinQuantity(item, newQty, holder.getAdapterPosition());
-                }
-
-                // Re-enable text watcher
-                holder.quantityEditViewText.addTextChangedListener(this);
             }
         });
     }
