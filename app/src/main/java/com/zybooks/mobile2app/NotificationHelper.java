@@ -74,7 +74,8 @@ public class NotificationHelper {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.outline_circle_notification)
                     .setContentTitle("Low Inventory Report")
-                    .setContentText(itemName)
+                    .setContentText("*** SMS permissions blocked ***\n" +
+                            "Grant SMS permissions to view the detailed report!")
                     .setPriority(NotificationCompat.PRIORITY_HIGH);
 
             // Get the system notification manager and send the notification

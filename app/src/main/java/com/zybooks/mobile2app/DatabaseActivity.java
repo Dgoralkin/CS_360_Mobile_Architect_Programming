@@ -93,7 +93,7 @@ public class DatabaseActivity extends AppCompatActivity {
             // Set the dialog message and button text
             new AlertDialog.Builder(this)
                     .setTitle("Usage Tip")
-                    .setMessage("Tap and hold the item to adjust quantity")
+                    .setMessage("Tap and hold an item to adjust quantity")
                     .setPositiveButton("Got it", (dialog, which) -> {
                         // Save that the tip was shown
                         prefs.edit().putBoolean("tip_shown", true).apply();

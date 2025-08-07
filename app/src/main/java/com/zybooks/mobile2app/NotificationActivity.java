@@ -367,7 +367,7 @@ public class NotificationActivity extends AppCompatActivity {
      * ********************************************************************************************/
     public static void sendLowStockSMS(Context context, String message, int requestCode) {
         // Phone number example.
-        String phoneNumber = "1234567890";
+        String phoneNumber = "17785491390";
 
         try {
             // Create a new SMS message
